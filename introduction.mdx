@@ -1,0 +1,59 @@
+---
+title: "Calculator App: A Feature-Rich Terminal Calculator"
+sidebarTitle: "Introduction"
+description: "Calculator App is a Python CLI calculator with natural language input, fraction arithmetic, equation solving, variables, math functions, and meme mode — all from your terminal."
+---
+
+Calculator App is a Python-powered terminal calculator that goes far beyond basic arithmetic. Installed as a single pip package and launched with the `calc-app` command, it gives you an interactive REPL where you can crunch numbers using plain English, work with fractions, solve linear equations, store named variables, call math functions, and even toggle a meme mode for comic relief — all without leaving your terminal.
+
+## Features at a Glance
+
+Calculator App ships with a broad set of capabilities out of the box:
+
+- **Basic arithmetic** — addition, subtraction, multiplication, division, and exponentiation with correct operator precedence
+- **Natural language input** — phrases like `9 squared`, `5 cubed`, and `sqrt of 16` are parsed and evaluated automatically
+- **Fraction arithmetic** — enter `1/2 + 1/3` or mixed numbers like `2 1/2 + 3/4` and get exact fractional results
+- **Equation solving** — write `2x+4=10` or `6+x=7` and the solver finds the unknown variable
+- **Named variables** — set `x=5` and then reuse `x` in any subsequent expression
+- **Math functions** — `sqrt`, `sin`, `cos`, `tan`, `log`, and constants `pi` and `e` are available by default
+- **Meme mode** — type `meme` to toggle on a layer of internet humour over your results
+
+## Explore the Features
+
+<CardGroup cols={2}>
+  <Card title="Basic Math" icon="calculator" href="/features/basic-math">
+    Arithmetic expressions with full operator precedence and exponentiation.
+  </Card>
+  <Card title="Fractions" icon="divide" href="/features/fractions">
+    Exact fraction and mixed-number arithmetic powered by Python's `Fraction` type.
+  </Card>
+  <Card title="Natural Language" icon="comment" href="/features/natural-language">
+    Type expressions in plain English: squared, cubed, sqrt of, and more.
+  </Card>
+  <Card title="Variables" icon="x" href="/features/variables">
+    Store values with `x=5` and reference them in any later expression.
+  </Card>
+  <Card title="Equation Solver" icon="equals" href="/features/equation-solver">
+    Solve linear equations like `2x+4=10` directly at the prompt.
+  </Card>
+  <Card title="Math Functions" icon="function" href="/features/math-functions">
+    Built-in access to `sqrt`, `sin`, `cos`, `tan`, `log`, `pi`, and `e`.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+Calculator App runs as a **REPL** (Read-Eval-Print Loop). Each time you press Enter, the app reads your input line and routes it through a processing pipeline:
+
+1. **Natural language parser** (`parser.py`) — rewrites English phrases into Python-compatible expressions (e.g. `9 squared` → `(9)**2`).
+2. **Fraction parser** (`fractions.py`) — converts fraction literals and mixed numbers into `Fraction(...)` constructor calls so arithmetic stays exact.
+3. **Variable substitution** (`variables.py`) — replaces any stored variable names with their current numeric values.
+4. **Evaluator** (`evaluator.py`) — calls Python's `eval` against a tightly controlled safe namespace that exposes only the math functions listed above, preventing arbitrary code execution.
+5. **Equation solver** (`solver.py`) — when the input contains both `=` and a letter, the solver isolates the unknown and returns its value.
+6. **Meme handler** (`meme.py`) — when meme mode is active, a small set of well-known inputs are intercepted and returned with comedic results before the evaluator runs.
+
+The loop continues until you type `quit` or press `Ctrl+C`.
+
+<Note>
+  Calculator App requires **Python 3.10 or later**. Make sure your environment meets this requirement before installing. You can check your version with `python --version`.
+</Note>

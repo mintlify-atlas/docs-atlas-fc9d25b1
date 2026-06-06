@@ -1,0 +1,201 @@
+---
+title: "Running the Test Suite for Calculator App"
+sidebarTitle: "Testing"
+description: "How to run Calculator App's test suite, what each test category covers, and how to extend tests with new cases."
+---
+
+Calculator App ships with a self-contained test script, `calc_tests.py`, that exercises every major feature of the calculator — from basic arithmetic and fraction handling to natural-language parsing and equation solving. Tests are plain Python functions with no external test framework required.
+
+## Running the Tests
+
+From the project root, execute the test script directly with Python:
+
+```bash
+python calc_tests.py
+```
+
+No additional setup is needed beyond installing the package. All five test functions run automatically and print a pass/fail line for each individual case.
+
+### Expected Output
+
+A fully passing run produces output like the following:
+
+```text
+=== Basic Math Tests ===
+✓ 2+3 = 5 (expected 5)
+✓ 10-4 = 6 (expected 6)
+✓ 3*4 = 12 (expected 12)
+✓ 15/3 = 5 (expected 5)
+✓ 2^3 = 8 (expected 8)
+✓ 2**3 = 8 (expected 8)
+
+=== Fraction Tests ===
+✓ 1/2 + 1/3 = 5/6 (expected 5/6)
+✓ 3/4 - 1/4 = 1/2 (expected 1/2)
+✓ 2 1/2 + 1/4 = 2 3/4 (expected 2 3/4)
+✓ 1/2 * 2 = 1 (expected 1)
+
+=== Natural Language Tests ===
+✓ 9 squared = 81 (expected 81)
+✓ 5 cubed = 125 (expected 125)
+✓ sqrt 16 = 4.0 (expected 4.0)
+
+=== Equation Tests ===
+✓ 2x+4=10 → x = 3 (expected x = 3)
+✓ 6+x=7 → x = 1 (expected x = 1)
+✓ x^2-4=0 → x = -2 or x = 2 (expected x = -2 or x = 2)
+✓ 5x+101010=10 → x = -20200 (expected x = -20200)
+
+=== Function Tests ===
+✓ sqrt(16) = 4.0 (expected 4.0)
+✓ sin(0) = 0.0 (expected 0.0)
+✓ cos(0) = 1.0 (expected 1.0)
+✓ pi = 3.141592653589793 (expected 3.141592653589793)
+
+=== Test Complete ===
+```
+
+A `✓` means the result matched the expected value exactly. A `✗` means a mismatch — the actual and expected values are both printed so you can compare them immediately.
+
+---
+
+## Test Categories
+
+### 1. `test_basic_math()` — 6 cases
+
+Verifies that the core `calc()` evaluator handles the fundamental arithmetic operators and both exponentiation syntaxes.
+
+| Expression | Expected |
+|---|---|
+| `2+3` | `5` |
+| `10-4` | `6` |
+| `3*4` | `12` |
+| `15/3` | `5` |
+| `2^3` | `8` |
+| `2**3` | `8` |
+
+Both `^` and `**` are tested separately to confirm that the caret-to-power regex replacement works correctly alongside native Python exponentiation.
+
+---
+
+### 2. `test_fractions()` — 4 cases
+
+Confirms that `parse_fractions()` rewrites fraction literals to `Fraction()` calls and that the result formatting produces the correct mixed-number or proper-fraction strings.
+
+| Expression | Expected |
+|---|---|
+| `1/2 + 1/3` | `"5/6"` |
+| `3/4 - 1/4` | `"1/2"` |
+| `2 1/2 + 1/4` | `"2 3/4"` |
+| `1/2 * 2` | `1` |
+
+The last case (`1/2 * 2`) expects the integer `1`, not the string `"1"`, because the result's denominator is 1 and the formatter returns the raw numerator.
+
+---
+
+### 3. `test_natural_language()` — 3 cases
+
+Validates the `parse_natural_language()` patterns by passing English-phrased expressions through `calc()` end-to-end.
+
+| Expression | Expected |
+|---|---|
+| `9 squared` | `81` |
+| `5 cubed` | `125` |
+| `sqrt 16` | `4.0` |
+
+These tests confirm that the NL parser correctly rewrites the phrase before the expression reaches `eval()`.
+
+---
+
+### 4. `test_equations()` — 4 cases
+
+Exercises `solve_equation()` across linear equations, a simple quadratic, and a large-coefficient linear equation to stress-test the brute-force integer search range (−100,000 to 100,000).
+
+| Equation | Expected |
+|---|---|
+| `2x+4=10` | `"x = 3"` |
+| `6+x=7` | `"x = 1"` |
+| `x^2-4=0` | `"x = -2 or x = 2"` |
+| `5x+101010=10` | `"x = -20200"` |
+
+<Warning>
+  The equation solver uses integer brute-force search for quadratic-style expressions and algebraic coefficient extraction for linear ones. Equations with non-integer or very large solutions outside the search range may return `"Could not solve equation"`.
+</Warning>
+
+---
+
+### 5. `test_functions()` — 4 cases
+
+Checks that the math functions exposed in `safe_dict` are accessible and return correct values. Comparison uses a tolerance of `0.0001` to accommodate floating-point precision.
+
+| Expression | Expected |
+|---|---|
+| `sqrt(16)` | `4.0` |
+| `sin(0)` | `0.0` |
+| `cos(0)` | `1.0` |
+| `pi` | `3.141592653589793` |
+
+---
+
+## Standalone Equation Debug Script
+
+In addition to `calc_tests.py`, the repository includes `test_equation.py` — a lightweight standalone script for manually tracing how the equation solver processes a single equation step by step. It is not part of the automated suite; it's a development aid for debugging the implicit-multiplication substitution and `eval()` stages.
+
+```bash
+python test_equation.py
+```
+
+Running it prints intermediate transformation states for the hard-coded equation `"2x+4=10"`:
+
+```text
+Original left: 2x+4
+Original right: 10
+After multiplication fix: 2*x+4
+Test expression: 2*3+4
+Left result: 10
+Right result: 10
+Equal? True
+```
+
+Edit the `equation` variable at the top of `test_equation.py` to debug any specific equation you are working with.
+
+---
+
+## Adding New Test Cases
+
+<Tip>
+  To add a new test, copy the tuple pattern from any existing test list and append your `(expression, expected_result)` pair. No boilerplate or imports are needed beyond what is already at the top of `calc_tests.py`.
+</Tip>
+
+For example, to add a new basic math case:
+
+```python
+def test_basic_math():
+    tests = [
+        ("2+3",  5),
+        ("10-4", 6),
+        # ... existing cases ...
+        ("100/4", 25),   # <-- your new case
+    ]
+    for expr, expected in tests:
+        result = calc(expr)
+        status = "✓" if result == expected else "✗"
+        print(f"{status} {expr} = {result} (expected {expected})")
+```
+
+For fraction results, compare against a string because `calc()` returns formatted fraction strings:
+
+```python
+def test_fractions():
+    tests = [
+        # ... existing cases ...
+        ("5/6 + 1/6", 1),       # whole number result
+        ("1/3 + 1/3", "2/3"),   # proper fraction result
+    ]
+    for expr, expected in tests:
+        result = calc(expr)
+        status = "✓" if str(result) == str(expected) else "✗"
+        print(f"{status} {expr} = {result} (expected {expected})")
+```
+
+For equation tests, always compare against the full `"var = value"` string that `solve_equation()` returns.

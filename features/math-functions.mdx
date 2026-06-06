@@ -1,0 +1,98 @@
+---
+title: "Built-In Math Functions and Constants for Advanced Calculations"
+sidebarTitle: "Math Functions"
+description: "Use sqrt, sin, cos, tan, log, pi, and e directly in any expression. All functions are drawn from Python's math module in a secure sandbox."
+---
+
+Calculator App exposes a curated set of mathematical functions and constants that you can use in any expression. These are injected into the evaluation sandbox via the `safe_dict` in `evaluator.py`, making them available by name without any import or prefix.
+
+## Available Functions and Constants
+
+| Name | Type | Description | Example |
+|------|------|-------------|---------|
+| `sqrt(x)` | Function | Square root of `x` | `sqrt(16)` → `4.0` |
+| `sin(x)` | Function | Sine of `x` (radians) | `sin(0)` → `0.0` |
+| `cos(x)` | Function | Cosine of `x` (radians) | `cos(0)` → `1.0` |
+| `tan(x)` | Function | Tangent of `x` (radians) | `tan(0)` → `0.0` |
+| `log(x)` | Function | Natural logarithm of `x` | `log(e)` → `1.0` |
+| `pi` | Constant | π ≈ 3.141592653589793 | `pi` → `3.141592653589793` |
+| `e` | Constant | Euler's number ≈ 2.718281828459045 | `e` → `2.718281828459045` |
+
+## Usage Examples
+
+```text
+> sqrt(16)
+= 4.0
+
+> sin(pi/2)
+= 1.0
+
+> cos(0)
+= 1.0
+
+> tan(0)
+= 0.0
+
+> log(e)
+= 1.0
+
+> pi
+= 3.141592653589793
+
+> e
+= 2.718281828459045
+```
+
+## Combining Functions with Operators
+
+Functions return numeric values and can be composed with any operator or other function:
+
+```text
+> sqrt(9) + sqrt(16)
+= 7.0
+
+> sin(pi/6) * 2
+= 1.0
+
+> log(e**3)
+= 3.0
+
+> cos(pi)
+= -1.0
+```
+
+## Trigonometry and Degree Conversion
+
+<Note>
+  All trigonometric functions (`sin`, `cos`, `tan`) accept angles in **radians**, not degrees. To convert degrees to radians, multiply by `pi / 180`:
+
+  ```text
+  > sin(90 * pi / 180)
+  = 1.0
+
+  > cos(60 * pi / 180)
+  = 0.5000000000000001
+  ```
+</Note>
+
+## Security Sandbox
+
+<Info>
+  `__builtins__` is set to an empty dict (`{}`) in the `safe_dict` passed to `eval`. This disables all built-in Python functions — only the explicitly listed functions and constants above are accessible. Attempts to call anything else (e.g., `open()`, `print()`, `__import__`) will return `Invalid - Math error` or `Invalid - Unknown variable`.
+</Info>
+
+The relevant portion of `evaluator.py`:
+
+```python
+safe_dict = {
+    '__builtins__': {},
+    'sqrt': math.sqrt,
+    'sin':  math.sin,
+    'cos':  math.cos,
+    'tan':  math.tan,
+    'log':  math.log,
+    'pi':   math.pi,
+    'e':    math.e,
+    'Fraction': Fraction,
+}
+```

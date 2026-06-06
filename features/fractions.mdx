@@ -1,0 +1,95 @@
+---
+title: "Exact Fraction Arithmetic with No Floating-Point Rounding"
+sidebarTitle: "Fractions"
+description: "Use simple and mixed fraction syntax for exact rational arithmetic powered by Python's fractions.Fraction — no floating-point rounding errors."
+---
+
+Calculator App handles fractions natively using Python's built-in `fractions.Fraction` class, which stores rational numbers as exact numerator/denominator pairs. This means operations like `1/2 + 1/3` return the mathematically exact result `5/6` rather than an approximation like `0.8333333333333333`.
+
+## How Fraction Parsing Works
+
+The `parse_fractions()` function in `fractions.py` scans the input expression for fraction patterns using regular expressions and converts them into `Fraction(numerator, denominator)` calls before the expression is passed to `eval`.
+
+### Simple Fractions
+
+A simple fraction like `a/b` is matched by:
+
+```python
+expr = re.sub(r'(\d+)/(\d+)', fraction_replacer, expr)
+# e.g. "1/2" → "Fraction(1, 2)"
+```
+
+### Mixed Fractions
+
+A mixed number like `whole num/den` (e.g., `2 1/2`) is matched first — before simple fractions — to avoid double-replacing:
+
+```python
+expr = re.sub(r'(\d+)\s+(\d+)/(\d+)', mixed_fraction_replacer, expr)
+# e.g. "2 1/2" → "Fraction(5, 2)"  (because 2*2 + 1 = 5)
+```
+
+The whole number is converted to an improper numerator: `whole * denominator + numerator`.
+
+## Output Formatting
+
+After evaluation, the result is a `Fraction` object. The `calc()` function in `evaluator.py` formats it according to these rules:
+
+<Steps>
+  <Step title="Denominator is 1">
+    Returns the integer value directly — e.g., `Fraction(4, 1)` → `4`.
+  </Step>
+  <Step title="Improper fraction">
+    Converts to mixed number form — e.g., `Fraction(13, 4)` → `3 1/4`.
+  </Step>
+  <Step title="Proper fraction">
+    Returns `numerator/denominator` — e.g., `Fraction(5, 6)` → `5/6`.
+  </Step>
+</Steps>
+
+## Examples
+
+```text
+> 1/2 + 1/3
+= 5/6
+
+> 3/4 - 1/4
+= 1/2
+
+> 2 1/2 + 1/4
+= 2 3/4
+
+> 1/2 * 2
+= 1
+
+> 2 1/2 + 3/4
+= 3 1/4
+```
+
+## Combining Fractions with Other Operations
+
+<Note>
+  Fractions can be freely combined with integers, decimals, and other operations. For example, `1/2 * 6 + 3/4` evaluates all terms with exact rational arithmetic before returning the result.
+</Note>
+
+```text
+> 1/2 * 6
+= 3
+
+> 3/4 + 1
+= 1 3/4
+
+> 2 1/2 * 2
+= 5
+```
+
+## Under the Hood
+
+The `Fraction` class is included in the `safe_dict` passed to `eval`, so the converted expressions like `Fraction(1, 2) + Fraction(1, 3)` execute safely within the restricted evaluation environment.
+
+```python
+safe_dict = {
+    '__builtins__': {},
+    'Fraction': Fraction,
+    # ... other functions
+}
+```

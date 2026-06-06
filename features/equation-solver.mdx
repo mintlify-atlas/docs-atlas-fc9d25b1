@@ -1,0 +1,107 @@
+---
+title: "Equation Solver for Linear and Polynomial Expressions"
+sidebarTitle: "Equation Solver"
+description: "Solve for an unknown variable in linear and polynomial equations using algebraic reduction or brute-force integer search from -100,000 to 100,000."
+---
+
+Calculator App can solve single-variable equations entered directly at the prompt. The `solve_equation()` function in `solver.py` tries an algebraic method first, then falls back to a brute-force integer search — covering a wide range of common equations without any special syntax.
+
+## How Equations Are Detected
+
+In `core.py`, an input line is treated as an equation when it contains an `=` sign **and** at least one letter (the unknown variable):
+
+```python
+if '=' in line and re.search(r'[a-zA-Z]', line):
+    result = solve_equation(line)
+    print(result)
+```
+
+This check runs before variable assignment and normal expression evaluation, so equations take priority.
+
+## Implicit Multiplication
+
+Before solving, `solver.py` rewrites common shorthand into valid Python:
+
+```python
+left = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', left)   # 2x  → 2*x
+left = re.sub(r'([a-zA-Z])\^(\d+)', r'\1**\2', left) # x^2 → x**2
+```
+
+This means you can write equations the way they appear in textbooks.
+
+## Solving Strategies
+
+<Tabs>
+  <Tab title="Algebraic (linear)">
+    For linear equations (no `**2` term present), the solver uses eval-based coefficient extraction:
+
+    1. Substitute `var = 0` into the left side to find the constant term `b`.
+    2. Substitute `var = 1` to find `a + b`; subtract `b` to get the coefficient `a`.
+    3. Evaluate the right side to get `c`.
+    4. Compute the solution as `(c - b) / a`.
+
+    ```python
+    b       = eval(left.replace(var, '0'))
+    a_plus_b = eval(left.replace(var, '1'))
+    a       = a_plus_b - b
+    c       = eval(right)
+    solution = (c - b) / a
+    ```
+
+    This is fast and returns exact results (or a fraction) for any `ax + b = c` form.
+  </Tab>
+  <Tab title="Brute-force (polynomial)">
+    When the algebraic path is skipped (e.g., a `**2` term is detected), the solver iterates over every integer from **-100,000 to 100,000**, substituting the candidate value and checking whether both sides of the equation differ by less than `0.0001`:
+
+    ```python
+    for test_val in range(-100000, 100001):
+        test_expr = left.replace(var, str(test_val))
+        if abs(eval(test_expr) - eval(right)) < 0.0001:
+            return f"{var} = {test_val}"
+    ```
+
+    The first matching integer is returned.
+  </Tab>
+</Tabs>
+
+## Examples
+
+```text
+> 2x+4=10
+x = 3
+
+> 6+x=7
+x = 1
+
+> 5x+101010=10
+x = -20200
+
+> x^2-4=0
+x = -2
+```
+
+<Note>
+  The brute-force search covers integers from **-100,000 to 100,000** and returns the **first** solution found (starting from the most negative). For `x^2 - 4 = 0`, the solver finds `x = -2` before `x = 2`. Non-integer solutions and values outside this range will result in `"Could not solve equation"`.
+</Note>
+
+## Equation Examples by Type
+
+<CardGroup cols={2}>
+  <Card title="Linear: ax + b = c" icon="function">
+    `2x+4=10` → `x = 3`  
+    `6+x=7` → `x = 1`
+  </Card>
+  <Card title="Large coefficients" icon="calculator">
+    `5x+101010=10` → `x = -20200`
+  </Card>
+  <Card title="Quadratic (brute-force)" icon="chart-line">
+    `x^2-4=0` → `x = -2`
+  </Card>
+  <Card title="No solution" icon="ban">
+    Out-of-range or non-integer → `Could not solve equation`
+  </Card>
+</CardGroup>
+
+<Warning>
+  Only **one variable** per equation is supported. The solver reads the **first letter** found on the left-hand side and uses it throughout. Equations with multiple unknowns (e.g., `x + y = 5`) will attempt to solve for `x` only, treating `y` as an unknown name which will cause an error.
+</Warning>

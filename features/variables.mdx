@@ -1,0 +1,105 @@
+---
+title: "Session Variables for Reusable Values in Expressions"
+sidebarTitle: "Variables"
+description: "Store named values with x=5 and reuse them in any expression during the session. Variables persist until the calculator is closed or reassigned."
+---
+
+Calculator App supports named session variables, letting you store a value once and reference it in as many expressions as you like without retyping the number. Variables live in a simple dictionary that persists for the entire session.
+
+## Setting a Variable
+
+Type the variable name, an equals sign, and the value. There must be no arithmetic operators (`+`, `-`, `*`, `/`) on the left-hand side.
+
+```text
+> x=5
+Set x = 5
+
+> total=100
+Set total = 100
+```
+
+### How Assignment Is Detected
+
+In `core.py`, the input is checked before evaluation:
+
+```python
+if '=' in line and not any(op in line.split('=')[0] for op in ['+', '-', '*', '/']):
+    name, value = line.split('=', 1)
+    variables[name.strip()] = float(value.strip())
+    print(f"Set {name.strip()} = {value.strip()}")
+```
+
+If the left side of `=` contains an operator, the expression is passed to the equation solver instead (see [Equation Solver](/features/equation-solver)).
+
+## Using Variables in Expressions
+
+Once set, a variable name is substituted as a plain string into the expression before it reaches `eval`. This happens inside `evaluator.py`:
+
+```python
+for name, value in variables.items():
+    expr = expr.replace(name, str(value))
+```
+
+You can use variables anywhere an ordinary number would appear:
+
+```text
+> x=5
+Set x = 5
+
+> x+3
+= 8.0
+
+> 2*x
+= 10.0
+
+> x**2
+= 25.0
+
+> x+x
+= 10.0
+```
+
+## Full Session Example
+
+<Steps>
+  <Step title="Assign a variable">
+    ```text
+    > x=5
+    Set x = 5
+    ```
+  </Step>
+  <Step title="Use it in calculations">
+    ```text
+    > x+3
+    = 8.0
+    > 2*x
+    = 10.0
+    ```
+  </Step>
+  <Step title="Reassign to update the value">
+    ```text
+    > x=10
+    Set x = 10
+    > x+3
+    = 13.0
+    ```
+  </Step>
+</Steps>
+
+## Storage
+
+Variables are defined in `variables.py` as a plain module-level dictionary:
+
+```python
+variables = {}
+```
+
+Both `core.py` and `evaluator.py` import this same object, so assignments made at the prompt are immediately visible to every subsequent evaluation.
+
+<Warning>
+  Variables are stored as **floats**. Entering `x=5` stores `5.0` internally, which is why expressions return float results (e.g., `x+3` → `8.0`). To update a variable, simply reassign it: `x=10`.
+</Warning>
+
+<Note>
+  Variable substitution is a plain string replacement, so a variable named `x` will also match inside longer names if they share the same characters. Keep variable names short and unambiguous (single letters or short distinct strings) to avoid unexpected substitutions.
+</Note>

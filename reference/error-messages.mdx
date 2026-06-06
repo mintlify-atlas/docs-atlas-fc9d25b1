@@ -1,0 +1,313 @@
+---
+title: "Calculator App Error Messages: Causes and Fixes"
+sidebarTitle: "Error Messages"
+description: "Every error message returned by Calculator App, what triggers each one, and step-by-step guidance for resolving it."
+---
+
+When Calculator App cannot evaluate an expression, it returns a descriptive error string instead of a numeric result. Understanding what each message means — and what input pattern caused it — is the fastest way to diagnose and fix a problem. This page lists every error in the order they are caught, along with actionable troubleshooting steps.
+
+## Evaluator Errors
+
+These messages are returned by `calc()` in `evaluator.py`. They are produced by exception handlers that wrap the central `eval()` call, plus two explicit checks on the result value.
+
+<Accordion title='"Invalid - Division by zero"'>
+
+**When it occurs**
+
+This error is raised in two distinct situations:
+
+1. A `ZeroDivisionError` exception is thrown during evaluation (e.g., integer `0` in the denominator of a `Fraction`).
+2. The result of the expression evaluates to `inf` — which happens when Python's float arithmetic divides by zero without raising an exception (e.g., `1.0 / 0.0` promoting to float infinity).
+
+**Example triggers**
+
+```text
+1/0
+```
+```text
+= Invalid - Division by zero
+```
+
+```text
+1.0/0
+```
+```text
+= Invalid - Division by zero
+```
+
+**How to fix it**
+
+<Steps>
+  <Step title="Check the denominator">
+    Inspect your expression for any explicit `/ 0` or `/ 0.0`. Remove or replace the zero denominator with a non-zero value.
+  </Step>
+  <Step title="Check variable values">
+    If a variable is used as the divisor (e.g., `10/x`), verify that the variable is not set to `0`. Reassign it with a non-zero value before re-running the expression.
+  </Step>
+  <Step title="Verify intermediate sub-expressions">
+    In a compound expression, an intermediate sub-expression may evaluate to zero before it appears in a divisor position. Evaluate sub-expressions individually to locate the zero.
+  </Step>
+</Steps>
+
+</Accordion>
+
+<Accordion title='"Invalid - Not a number"'>
+
+**When it occurs**
+
+The result of the expression is `nan` (Not a Number). This can occur when floating-point operations produce an indeterminate form, such as `0.0 * float('inf')`.
+
+**Example trigger**
+
+```text
+0 * (1/0)
+```
+
+**How to fix it**
+
+<Steps>
+  <Step title="Identify the indeterminate sub-expression">
+    Split the expression into smaller parts and evaluate each individually to find which one produces `nan`.
+  </Step>
+  <Step title="Review the mathematical intent">
+    `nan` in floating-point arithmetic typically signals an undefined mathematical operation. Reformulate your expression to avoid such operations.
+  </Step>
+</Steps>
+
+</Accordion>
+
+<Accordion title='"Invalid - Unknown variable: {name}"'>
+
+**When it occurs**
+
+You used a name in your expression that is not defined in the variables store and is not a recognised function or constant. The `{name}` placeholder shows the exact undefined name Python encountered.
+
+**Example trigger**
+
+```text
+y + 5
+```
+```text
+= Invalid - Unknown variable: y
+```
+
+*(when `y` has not been assigned)*
+
+**How to fix it**
+
+<Steps>
+  <Step title="Assign the variable first">
+    Before using a name in an expression, define it with the assignment syntax:
+
+    ```text
+    y=10
+    ```
+    ```text
+    Set y = 10
+    ```
+
+    Then re-enter the original expression.
+  </Step>
+  <Step title="Check for typos">
+    If you intended to use a function (e.g., `sin`, `cos`, `sqrt`), verify the spelling. A typo like `sqt(4)` would trigger this error with the message `Invalid - Unknown variable: sqt`.
+  </Step>
+  <Step title="Check for implicit multiplication near letters">
+    In regular expressions (non-equation mode), writing `2x` does **not** expand to `2*x`. Use explicit multiplication: `2*x`.
+  </Step>
+</Steps>
+
+</Accordion>
+
+<Accordion title='"Invalid - Syntax error"'>
+
+**When it occurs**
+
+Python's parser cannot parse the expression — it is not valid Python syntax after all pre-processing transformations have been applied.
+
+**Common triggers**
+
+```text
+3 + * 4
+```
+```text
+= Invalid - Syntax error
+```
+
+```text
+sqrt(
+```
+```text
+= Invalid - Syntax error
+```
+
+**How to fix it**
+
+<Steps>
+  <Step title="Check for mismatched parentheses">
+    Every opening `(` must have a matching `)`. Count them carefully, especially in nested function calls.
+  </Step>
+  <Step title="Check for consecutive operators">
+    Expressions like `3 + * 4` or `5 ** * 2` contain adjacent operators with no operand between them. Insert the missing operand.
+  </Step>
+  <Step title="Check for empty expressions">
+    Submitting a blank line or an expression like `()` can trigger a syntax error. Ensure the expression contains at least one value.
+  </Step>
+  <Step title="Check natural language phrase spacing">
+    Partial phrases such as `9 squar` do not match any pattern and may result in a name that confuses the parser. Use the complete phrase or symbolic notation.
+  </Step>
+</Steps>
+
+</Accordion>
+
+<Accordion title='"Invalid - Value error: {msg}"'>
+
+**When it occurs**
+
+The expression is syntactically valid but contains a value that is mathematically out of range for the requested operation. The `{msg}` portion contains the original Python `ValueError` message.
+
+**Common triggers**
+
+```text
+sqrt(-1)
+```
+```text
+= Invalid - Value error: math domain error
+```
+
+```text
+log(-5)
+```
+```text
+= Invalid - Value error: math domain error
+```
+
+```text
+log(0)
+```
+```text
+= Invalid - Value error: math domain error
+```
+
+**How to fix it**
+
+<Steps>
+  <Step title="Check inputs to sqrt">
+    `sqrt(x)` requires `x >= 0`. Negative radicands are not supported in real arithmetic. If you need complex arithmetic, reformulate your calculation.
+  </Step>
+  <Step title="Check inputs to log">
+    `log(x)` requires `x > 0`. The natural logarithm is undefined at zero and for negative numbers.
+  </Step>
+  <Step title="Read the {msg} portion">
+    The message after the colon is Python's own description of the problem and usually names the domain constraint that was violated.
+  </Step>
+</Steps>
+
+</Accordion>
+
+<Accordion title='"Invalid - Math error"'>
+
+**When it occurs**
+
+A catch-all handler for any exception not covered by the more specific cases above. This should be rare in normal usage.
+
+**How to fix it**
+
+<Steps>
+  <Step title="Simplify the expression">
+    Break the expression into smaller pieces and evaluate each one individually to identify which part is causing the issue.
+  </Step>
+  <Step title="Check for unusual operator combinations">
+    Very unusual constructs (e.g., extremely large exponents that overflow Python's float range) can trigger miscellaneous math exceptions.
+  </Step>
+</Steps>
+
+</Accordion>
+
+---
+
+## REPL-Level Errors
+
+This message is emitted by the top-level `except Exception` handler in `core.py`. It does not originate from the evaluator and provides less detail.
+
+<Accordion title='"Error - try again"'>
+
+**When it occurs**
+
+An unexpected exception was raised in the main REPL loop outside of the evaluator's own exception handling. This is a safety net for unusual inputs that bypass all inner handlers.
+
+**How to fix it**
+
+<Steps>
+  <Step title="Check the raw input for unusual characters">
+    Non-ASCII characters, certain Unicode symbols, or extremely long expressions can occasionally cause unexpected failures at the REPL level. Simplify the input and try again.
+  </Step>
+  <Step title="Restart the REPL">
+    If the error recurs on subsequent inputs, type `quit` and relaunch Calculator App. Session state (variables, meme mode) will be reset.
+  </Step>
+</Steps>
+
+</Accordion>
+
+---
+
+## Solver Errors
+
+This message is returned by `solve_equation()` in `solver.py` when the REPL routes input to the equation solver.
+
+<Accordion title='"Could not solve equation"'>
+
+**When it occurs**
+
+The equation solver exhausted its entire brute-force search range of integers from **−100,000 to 100,000** without finding a value that satisfies the equation (within a tolerance of `0.0001`), and the faster algebraic path was not applicable.
+
+**Example triggers**
+
+An equation whose only real solution is a large integer outside `[-100000, 100000]`:
+
+```text
+x + 200000 = 0
+```
+```text
+= Could not solve equation
+```
+
+An equation with only non-integer, non-rational solutions not close to any integer in the search range:
+
+```text
+x^2 - 2 = 0
+```
+
+*(solution is √2 ≈ 1.41421…, not an integer)*
+
+**How to fix it**
+
+<Steps>
+  <Step title="Verify the equation has an integer solution in the supported range">
+    The brute-force solver checks integers from −100,000 to 100,000. If the solution is outside this range or is not an integer, the solver cannot find it.
+  </Step>
+  <Step title="Rearrange the equation">
+    Sometimes rearranging brings the solution into range. For example, `x + 200000 = 0` has solution `x = -200000` (out of range), but you can verify manually or rearrange the problem.
+  </Step>
+  <Step title="Use the evaluator for verification">
+    If you suspect a specific solution value, substitute it back into the expression using the evaluator to check:
+
+    ```text
+    x=3
+    ```
+    ```text
+    2*x+4
+    ```
+    ```text
+    = 10.0
+    ```
+  </Step>
+  <Step title="Check for typos in the equation">
+    A misplaced operator or wrong coefficient can push the solution out of the solver's range. Double-check each term.
+  </Step>
+</Steps>
+
+<Warning>
+The solver searches only integer values. Equations whose solutions are exclusively irrational or large non-integer values (e.g., `x^2 - 2 = 0`, whose solutions are ±√2) will always return `"Could not solve equation"`.
+</Warning>
+
+</Accordion>

@@ -1,47 +1,256 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Calculator App in Minutes"
+sidebarTitle: "Quickstart"
+description: "A hands-on walkthrough of every Calculator App feature: arithmetic, fractions, natural language, variables, equation solving, math functions, and meme mode."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+Once you have Calculator App installed, the fastest way to learn it is to open a terminal and try things. This page walks you through every major feature with concrete input-and-output examples so you can hit the ground running.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## Launch the App
 
-## Prerequisites
+Start the calculator by running:
 
-Before you begin, you must have:
+```bash
+calc-app
+```
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+The startup banner lists everything you can do, and a `>` prompt appears when the app is ready:
 
-## Get started
+```text
+Simple Calculator - Type math expressions or 'quit'
+Set variables: x=5
+Use in math: x+3, 2*x, etc.
+Solve equations: 6+x=7, 2*x-3=5
+Functions: sqrt(16), 9**2, sin(pi/2)
+Natural language: '9 squared', 'sqrt of 16', '5 cubed'
+Fractions: 1/2 + 1/3, 2 1/2 + 3/4
+Type 'meme' to toggle meme mode!
 
-<Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+>
+```
 
-    ```bash
-    npm install your-package
+## Feature Walkthrough
+
+<Tabs>
+  <Tab title="Basic Arithmetic">
+    Type any numeric expression at the `>` prompt. Standard operator precedence applies — multiplication and division are evaluated before addition and subtraction. Use `**` or `^` for exponentiation.
+
+    ```text
+    > 2+3*4
+    = 14
+
+    > (2+3)*4
+    = 20
+
+    > 9**2
+    = 81
+
+    > 100/4-5
+    = 20.0
     ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
+    <Tip>
+      Use parentheses to control the order of operations, just as you would in a math textbook.
+    </Tip>
+  </Tab>
+
+  <Tab title="Fractions">
+    Enter fractions directly using the `/` separator. Mixed numbers (a whole number followed by a fraction) are also supported — separate the whole part and the fraction with a space.
+
+    ```text
+    > 1/2 + 1/3
+    = 5/6
+
+    > 2 1/2 + 3/4
+    = 3 1/4
+
+    > 3/4 - 1/4
+    = 1/2
+
+    > 1/3 * 3
+    = 1
     ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
+    Results are automatically simplified and displayed as mixed numbers when the value is greater than one. Whole-number results are shown without a denominator.
+
+    <Note>
+      Fraction arithmetic uses Python's built-in `Fraction` type, so results are always exact — no floating-point rounding errors.
+    </Note>
+  </Tab>
+
+  <Tab title="Natural Language">
+    You can describe operations in plain English instead of using symbols. The natural language parser recognises a set of common phrases and converts them before evaluation.
+
+    ```text
+    > 9 squared
+    = 81
+
+    > 5 cubed
+    = 125
+
+    > sqrt of 16
+    = 4.0
+
+    > square root of 144
+    = 12.0
     ```
-  </Step>
-</Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+    **Supported phrases:**
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+    | Phrase | Equivalent |
+    | --- | --- |
+    | `N squared` | `N ** 2` |
+    | `N cubed` | `N ** 3` |
+    | `sqrt of N` | `sqrt(N)` |
+    | `square root of N` | `sqrt(N)` |
+    | `sqrt N` | `sqrt(N)` |
+
+    <Tip>
+      Natural language phrases are case-insensitive, so `9 Squared` and `9 squared` both work.
+    </Tip>
+  </Tab>
+
+  <Tab title="Variables">
+    Store a value in a named variable by typing `name=value`. You can then use that name in any subsequent expression, and the calculator will substitute the stored value automatically.
+
+    ```text
+    > x=5
+    Set x = 5
+
+    > x+3
+    = 8.0
+
+    > 2*x
+    = 10.0
+
+    > x**2 + 2*x + 1
+    = 36.0
+    ```
+
+    Assign a new value at any time to update the variable:
+
+    ```text
+    > x=10
+    Set x = 10
+
+    > x+3
+    = 13.0
+    ```
+
+    <Note>
+      Variable names are case-sensitive. `x` and `X` are treated as different variables.
+    </Note>
+  </Tab>
+
+  <Tab title="Equation Solver">
+    Write an equation containing a letter and an `=` sign, and Calculator App will solve for the unknown variable. Both sides of the equation can contain constants and coefficients.
+
+    ```text
+    > 2x+4=10
+    x = 3
+
+    > 6+x=7
+    x = 1
+
+    > 2*x-3=5
+    x = 4
+
+    > 3x=9
+    x = 3
+    ```
+
+    The solver supports any single-letter variable name:
+
+    ```text
+    > 5n+2=17
+    n = 3
+    ```
+
+    <Tip>
+      You can write coefficients without an explicit `*` sign: `2x` is interpreted as `2*x` automatically.
+    </Tip>
+  </Tab>
+
+  <Tab title="Math Functions">
+    A curated set of mathematical functions and constants is available at the prompt. No import or setup is required — just type the function call directly.
+
+    ```text
+    > sqrt(16)
+    = 4.0
+
+    > sin(pi/2)
+    = 1.0
+
+    > cos(0)
+    = 1.0
+
+    > log(e)
+    = 1.0
+
+    > tan(pi/4)
+    = 0.9999999999999999
+    ```
+
+    **Available functions and constants:**
+
+    | Name | Description |
+    | --- | --- |
+    | `sqrt(x)` | Square root of `x` |
+    | `sin(x)` | Sine of `x` (radians) |
+    | `cos(x)` | Cosine of `x` (radians) |
+    | `tan(x)` | Tangent of `x` (radians) |
+    | `log(x)` | Natural logarithm of `x` |
+    | `pi` | π ≈ 3.14159… |
+    | `e` | Euler's number ≈ 2.71828… |
+
+    <Note>
+      Trigonometric functions expect angles in **radians**, not degrees. To convert degrees to radians, multiply by `pi/180`: e.g. `sin(90 * pi/180)`.
+    </Note>
+  </Tab>
+
+  <Tab title="Meme Mode">
+    Type `meme` at any point to toggle meme mode on or off. When active, a handful of legendary internet expressions return humorous results instead of mathematically correct ones.
+
+    ```text
+    > meme
+    Meme mode: ON 😂
+
+    > 9+10
+    = 21 😂
+
+    > 2+2
+    = 5 (quick maths)
+
+    > 1+1
+    = 11 (big brain)
+    ```
+
+    Toggle it off again whenever you need real answers:
+
+    ```text
+    > meme
+    Meme mode: OFF
+
+    > 9+10
+    = 19
+    ```
+
+    <Tip>
+      Expressions containing `67` or `41` also get special meme treatment when meme mode is active, even if they are part of a larger calculation.
+    </Tip>
+  </Tab>
+</Tabs>
+
+## Quitting the Calculator
+
+To exit the REPL, type `quit` at the prompt:
+
+```text
+> quit
+```
+
+You can also press `Ctrl+C` at any time to exit immediately.
+
+<Note>
+  Any variables you have set during a session are stored in memory only. They are not persisted between sessions — each fresh `calc-app` launch starts with an empty variable store.
+</Note>

@@ -1,0 +1,312 @@
+---
+title: "Calculator App Built-In Functions and Constants Reference"
+sidebarTitle: "Functions"
+description: "Complete reference for every built-in function, constant, and natural language transformation available in Calculator App expressions."
+---
+
+Calculator App exposes a curated set of mathematical functions and constants drawn from Python's standard `math` module. They are available in any expression you type at the REPL prompt. This page documents each function's signature, behaviour, and example output, and also covers the natural language transformations that act as convenient shorthand.
+
+## Built-In Functions
+
+These names are injected into the evaluator's safe dictionary before every `eval` call. No import statement or prefix is needed — just use them directly in your expression.
+
+---
+
+### `sqrt(x)`
+
+Computes the square root of `x`.
+
+<ParamField path="x" type="float | int" required>
+  A non-negative real number. Passing a negative value raises a `ValueError` and returns `"Invalid - Value error: math domain error"`.
+</ParamField>
+
+**Returns:** `float`
+
+```text
+sqrt(25)
+```
+```text
+= 5.0
+```
+
+```text
+sqrt(2)
+```
+```text
+= 1.4142135623730951
+```
+
+```text
+sqrt(0)
+```
+```text
+= 0.0
+```
+
+---
+
+### `sin(x)`
+
+Computes the sine of `x`, where `x` is expressed in **radians**.
+
+<ParamField path="x" type="float | int" required>
+  Angle in radians. Use `pi` for degree conversions, e.g., `sin(90 * pi / 180)` for 90°.
+</ParamField>
+
+**Returns:** `float` in the range `[-1.0, 1.0]`
+
+```text
+sin(0)
+```
+```text
+= 0.0
+```
+
+```text
+sin(pi/2)
+```
+```text
+= 1.0
+```
+
+---
+
+### `cos(x)`
+
+Computes the cosine of `x`, where `x` is expressed in **radians**.
+
+<ParamField path="x" type="float | int" required>
+  Angle in radians.
+</ParamField>
+
+**Returns:** `float` in the range `[-1.0, 1.0]`
+
+```text
+cos(0)
+```
+```text
+= 1.0
+```
+
+```text
+cos(pi)
+```
+```text
+= -1.0
+```
+
+---
+
+### `tan(x)`
+
+Computes the tangent of `x`, where `x` is expressed in **radians**.
+
+<ParamField path="x" type="float | int" required>
+  Angle in radians. Avoid values where cosine equals zero (e.g., `pi/2`), as the result approaches infinity.
+</ParamField>
+
+**Returns:** `float`
+
+```text
+tan(0)
+```
+```text
+= 0.0
+```
+
+```text
+tan(pi/4)
+```
+```text
+= 0.9999999999999999
+```
+
+---
+
+### `log(x)`
+
+Computes the **natural logarithm** (base *e*) of `x`.
+
+<ParamField path="x" type="float | int" required>
+  A strictly positive real number. Passing zero or a negative value raises a `ValueError` and returns `"Invalid - Value error: math domain error"`.
+</ParamField>
+
+**Returns:** `float`
+
+```text
+log(e)
+```
+```text
+= 1.0
+```
+
+```text
+log(1)
+```
+```text
+= 0.0
+```
+
+<Note>
+`log(x)` is the natural logarithm (ln). To compute a base-10 logarithm, use the change-of-base formula: `log(x) / log(10)`.
+</Note>
+
+---
+
+## Constants
+
+Constants are resolved at the same time as functions and can appear anywhere in an expression.
+
+---
+
+### `pi`
+
+The mathematical constant π.
+
+**Value:** `3.141592653589793`
+
+```text
+pi * 2
+```
+```text
+= 6.283185307179586
+```
+
+```text
+sin(pi)
+```
+```text
+= 1.2246467991473532e-16
+```
+
+<Note>
+Due to floating-point precision, `sin(pi)` returns a very small number near zero rather than exactly `0.0`. This is expected behaviour.
+</Note>
+
+---
+
+### `e`
+
+Euler's number, the base of the natural logarithm.
+
+**Value:** `2.718281828459045`
+
+```text
+e
+```
+```text
+= 2.718281828459045
+```
+
+```text
+log(e)
+```
+```text
+= 1.0
+```
+
+---
+
+## Fraction Arithmetic
+
+### `Fraction(numerator, denominator)` *(internal)*
+
+Python's `fractions.Fraction` class is included in the safe dictionary to support exact rational arithmetic. Users do **not** call `Fraction()` directly — the `parse_fractions()` pre-processor rewrites `a/b` and mixed-number notation into the appropriate `Fraction(...)` calls automatically before evaluation.
+
+**What the parser rewrites:**
+
+| User input | Internal representation |
+|------------|------------------------|
+| `1/2` | `Fraction(1, 2)` |
+| `3/4` | `Fraction(3, 4)` |
+| `2 1/2` | `Fraction(5, 2)` |
+| `3 3/4` | `Fraction(15, 4)` |
+
+**Result formatting rules applied after evaluation:**
+
+- If `denominator == 1` → returned as a plain integer
+- If `|numerator| > denominator` → returned as a mixed number string, e.g., `"2 3/4"`
+- Otherwise → returned as `"numerator/denominator"`, e.g., `"5/6"`
+
+---
+
+## Natural Language Transformations
+
+The `parse_natural_language()` function in `parser.py` runs as a pre-processing step on every expression before evaluation. It applies five regex substitutions in order, allowing you to type English phrases instead of symbolic notation.
+
+<Note>
+All input is lowercased before pattern matching, so `9 Squared`, `9 squared`, and `9 SQUARED` are all equivalent.
+</Note>
+
+The five patterns are:
+
+<CardGroup cols={1}>
+  <Card title="Pattern 1 — squared" icon="superscript">
+    **Regex:** `(\d+(?:\.\d+)?)\s*squared` → `(\1)**2`
+
+    Matches a number (integer or decimal) optionally followed by whitespace, then the word `squared`.
+
+    ```text
+    9 squared
+    ```
+    ```text
+    = 81
+    ```
+  </Card>
+
+  <Card title="Pattern 2 — cubed" icon="cube">
+    **Regex:** `(\d+(?:\.\d+)?)\s*cubed` → `(\1)**3`
+
+    Matches a number optionally followed by whitespace, then the word `cubed`.
+
+    ```text
+    5 cubed
+    ```
+    ```text
+    = 125
+    ```
+  </Card>
+
+  <Card title="Pattern 3 — sqrt of" icon="radical-sign">
+    **Regex:** `sqrt\s*of\s*(\d+(?:\.\d+)?)` → `sqrt(\1)`
+
+    Matches the word `sqrt`, optional whitespace, the word `of`, optional whitespace, then a number.
+
+    ```text
+    sqrt of 16
+    ```
+    ```text
+    = 4.0
+    ```
+  </Card>
+
+  <Card title="Pattern 4 — square root of" icon="radical-sign">
+    **Regex:** `square\s*root\s*of\s*(\d+(?:\.\d+)?)` → `sqrt(\1)`
+
+    Matches the full phrase `square root of` (with optional internal whitespace), then a number.
+
+    ```text
+    square root of 25
+    ```
+    ```text
+    = 5.0
+    ```
+  </Card>
+
+  <Card title="Pattern 5 — sqrt (no keyword)" icon="function">
+    **Regex:** `sqrt\s*(\d+(?:\.\d+)?)` → `sqrt(\1)`
+
+    Matches the word `sqrt` followed by optional whitespace and a number, **without** the word `of`. This is the most compact form.
+
+    ```text
+    sqrt 16
+    ```
+    ```text
+    = 4.0
+    ```
+  </Card>
+</CardGroup>
+
+<Warning>
+Natural language patterns only match literal numbers written in the expression. Patterns like `x squared` or `sqrt of x` will **not** trigger the rewrite — use `x**2` or `sqrt(x)` instead when working with variables.
+</Warning>

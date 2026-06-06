@@ -1,0 +1,262 @@
+---
+title: "Module Architecture and Internal Design of Calculator App"
+sidebarTitle: "Architecture"
+description: "A technical deep-dive into Calculator App's module layout, evaluation pipeline, REPL dispatch loop, and each module's public API."
+---
+
+Calculator App is structured as a small, focused Python package (`calc_app`) with each concern isolated in its own module. There are no third-party dependencies — the entire implementation relies on the Python standard library, with `fractions.Fraction`, `math`, and `re` doing the heavy lifting.
+
+## Module Layout
+
+The package lives entirely inside the `calc_app/` directory. Each file owns a single responsibility, making it straightforward to extend any one layer without touching the others.
+
+```text
+calc_app/
+├── __init__.py      # re-exports: main, calc, solve_equation,
+│                    #             parse_natural_language, parse_fractions
+├── app.py           # entry point — imports main from core, runs it as __main__
+├── core.py          # REPL loop and top-level command dispatch
+├── evaluator.py     # calc(expr) — full expression evaluation pipeline
+├── parser.py        # parse_natural_language(expr) — NL phrases → math notation
+├── fractions.py     # parse_fractions(expr) — fraction literals → Fraction(a, b)
+├── solver.py        # solve_equation(equation) — algebraic equation solver
+├── meme.py          # handle_meme(line, meme_mode) — easter-egg responses
+└── variables.py     # variables dict — shared session state
+```
+
+The public surface exposed by `__init__.py` is intentionally small:
+
+```python
+from .core import main
+```
+
+`core.py` in turn imports `calc`, `solve_equation`, `handle_meme`, and `variables` from their respective sibling modules. This means importers of `calc_app` get `main`, while `calc_tests.py` reaches individual functions directly:
+
+```python
+from calc_app import calc, solve_equation, parse_natural_language, parse_fractions
+```
+
+---
+
+## Evaluation Pipeline — `calc(expr)`
+
+Every expression typed at the REPL passes through a sequential transformation pipeline inside `evaluator.calc()` before reaching Python's `eval`. The stages run in strict order; each stage hands a (possibly modified) string to the next.
+
+<Steps>
+  <Step title="Natural Language Parsing — parse_natural_language()">
+    The raw string is first passed to `parser.parse_natural_language()`, which lower-cases it and applies a series of regex substitutions to convert human-readable phrases into valid math notation.
+
+    | Input phrase | Output |
+    |---|---|
+    | `9 squared` | `(9)**2` |
+    | `5 cubed` | `(5)**3` |
+    | `sqrt of 16` | `sqrt(16)` |
+    | `square root of 16` | `sqrt(16)` |
+    | `sqrt 16` | `sqrt(16)` |
+  </Step>
+
+  <Step title="Fraction Rewriting — parse_fractions()">
+    `fractions.parse_fractions()` scans the expression for fraction literals and rewrites them as `Fraction(numerator, denominator)` calls so that Python's `fractions.Fraction` handles exact arithmetic.
+
+    Mixed numbers (e.g. `2 1/2`) are first converted to improper fractions before the `Fraction()` wrapper is applied:
+
+    | Input | Output |
+    |---|---|
+    | `1/2 + 1/3` | `Fraction(1, 2) + Fraction(1, 3)` |
+    | `2 1/2 + 1/4` | `Fraction(5, 2) + Fraction(1, 4)` |
+  </Step>
+
+  <Step title="Caret-to-Power Conversion">
+    A single regex replaces `^` (common caret exponentiation) with Python's `**` operator:
+
+    ```python
+    expr = re.sub(r'(\d+(?:\.\d+)?|\w+)\^(\d+(?:\.\d+)?|\w+)', r'\1**\2', expr)
+    ```
+
+    This runs after fraction rewriting so that expressions like `x^2-4=0` are handled correctly by the solver.
+  </Step>
+
+  <Step title="Variable Substitution">
+    Stored session variables are substituted by simple string replacement. The `variables` dict (from `variables.py`) maps names to their `float` values, and each entry is replaced in the expression string before evaluation:
+
+    ```python
+    for name, value in variables.items():
+        expr = expr.replace(name, str(value))
+    ```
+  </Step>
+
+  <Step title="Sandboxed eval()">
+    The transformed expression is evaluated with `eval()` inside a restricted `safe_dict`. The key guard is `'__builtins__': {}` — this removes access to all built-in functions and prevents arbitrary code execution. Only explicitly whitelisted names are available:
+
+    ```python
+    safe_dict = {
+        '__builtins__': {},
+        'sqrt': math.sqrt,
+        'sin':  math.sin,
+        'cos':  math.cos,
+        'tan':  math.tan,
+        'log':  math.log,
+        'pi':   math.pi,
+        'e':    math.e,
+        'Fraction': Fraction,
+    }
+    ```
+  </Step>
+
+  <Step title="Result Formatting">
+    After evaluation the result is checked and formatted before being returned:
+
+    - `'inf'` → `"Invalid - Division by zero"`
+    - `'nan'` → `"Invalid - Not a number"`
+    - `Fraction` with denominator `1` → integer numerator
+    - Improper `Fraction` → mixed-number string, e.g. `"2 3/4"`
+    - Proper `Fraction` → `"numerator/denominator"` string
+    - Anything else → returned as-is (Python `int` or `float`)
+  </Step>
+</Steps>
+
+---
+
+## REPL Dispatch — `core.main()`
+
+`core.py` runs an infinite `input()` loop and routes each line through a priority-ordered sequence of checks before falling back to `calc()`.
+
+<AccordionGroup>
+  <Accordion title="quit — exit the REPL">
+    An exact match on the string `'quit'` breaks the loop and terminates the process cleanly.
+
+    ```python
+    if line == 'quit':
+        break
+    ```
+  </Accordion>
+
+  <Accordion title="meme — toggle meme mode">
+    An exact match on `'meme'` flips the module-level `meme_mode` boolean and prints the current status.
+
+    ```python
+    if line == 'meme':
+        meme_mode = not meme_mode
+        status = "ON 😂" if meme_mode else "OFF"
+        print(f"Meme mode: {status}")
+    ```
+  </Accordion>
+
+  <Accordion title="= with a letter — equation solving">
+    If the line contains `=` **and** a letter (matched via `re.search(r'[a-zA-Z]', line)`), the line is forwarded to `solve_equation()`. This covers cases like `2x+4=10` and `x^2-4=0`.
+
+    ```python
+    if '=' in line and re.search(r'[a-zA-Z]', line):
+        result = solve_equation(line)
+        print(result)
+    ```
+  </Accordion>
+
+  <Accordion title="= without operators — variable assignment">
+    If the line contains `=` but the left-hand side has none of `+  -  *  /`, it is treated as a variable assignment. The name and value are split on the first `=`, the value is cast to `float`, and the pair is stored in the shared `variables` dict.
+
+    ```python
+    if '=' in line and not any(op in line.split('=')[0] for op in ['+', '-', '*', '/']):
+        name, value = line.split('=', 1)
+        variables[name.strip()] = float(value.strip())
+    ```
+  </Accordion>
+
+  <Accordion title="meme_mode active — easter-egg check">
+    Before reaching the default evaluator, the line is passed to `handle_meme()`. If `meme_mode` is `False`, the function immediately returns `None` and execution falls through. When `meme_mode` is `True`, specific expressions return humorous strings.
+
+    ```python
+    meme_output = handle_meme(line, meme_mode)
+    if meme_output:
+        print(meme_output)
+    ```
+  </Accordion>
+
+  <Accordion title="default — expression evaluation">
+    All other input reaches `calc()` and the result is printed with an `= ` prefix.
+
+    ```python
+    result = calc(line)
+    print(f"= {result}")
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Module API Reference
+
+### `calc_app.evaluator`
+
+<ParamField path="expr" type="str" required>
+  A math expression string. May contain natural-language phrases (`squared`, `sqrt of`), fraction literals (`1/2`, `2 3/4`), caret exponents (`2^8`), named variables stored in the session, and any function from the `safe_dict` whitelist (`sqrt`, `sin`, `cos`, `tan`, `log`, `pi`, `e`).
+</ParamField>
+
+<ResponseField name="calc(expr)" type="str | int | float | Fraction">
+  Returns the evaluated result. Numeric results are returned as Python `int` or `float`; exact fraction results are returned as formatted strings (`"5/6"`, `"2 3/4"`) or as an `int` when the denominator is 1. Error conditions return a descriptive `"Invalid - ..."` string.
+</ResponseField>
+
+---
+
+### `calc_app.solver`
+
+<ParamField path="equation" type="str" required>
+  An equation string containing exactly one `=` sign and at least one letter variable, e.g. `"2x+4=10"` or `"x^2-4=0"`. Implicit multiplication (`2x` → `2*x`) is handled internally.
+</ParamField>
+
+<ResponseField name="solve_equation(equation)" type="str | None">
+  Returns a string of the form `"x = 3"` on success, `"Could not solve equation"` if no integer solution is found in the search range, or `None` if the input does not contain `=` or a letter variable.
+</ResponseField>
+
+---
+
+### `calc_app.parser`
+
+<ParamField path="expr" type="str" required>
+  Any expression string — may include natural-language phrases such as `"9 squared"`, `"sqrt of 16"`, or `"5 cubed"`. The function lower-cases the input before applying patterns.
+</ParamField>
+
+<ResponseField name="parse_natural_language(expr)" type="str">
+  Returns the expression with NL phrases replaced by valid Python math notation. Phrases not matching any pattern are passed through unchanged.
+</ResponseField>
+
+---
+
+### `calc_app.fractions`
+
+<ParamField path="expr" type="str" required>
+  An expression string that may contain fraction literals in the form `a/b` or mixed numbers in the form `whole a/b` (e.g. `"2 1/2"`).
+</ParamField>
+
+<ResponseField name="parse_fractions(expr)" type="str">
+  Returns the expression with all fraction literals replaced by `Fraction(numerator, denominator)` constructor calls. Mixed numbers are first converted to their improper equivalent.
+</ResponseField>
+
+---
+
+### `calc_app.meme`
+
+<ParamField path="line" type="str" required>
+  The raw input line from the REPL, stripped of leading/trailing whitespace.
+</ParamField>
+
+<ParamField path="meme_mode" type="bool" required>
+  Whether meme mode is currently active. When `False` the function is a no-op and returns `None` immediately.
+</ParamField>
+
+<ResponseField name="handle_meme(line, meme_mode)" type="str | None">
+  Returns a humorous response string (e.g. `"= 21 😂"`) when `meme_mode` is `True` and `line` matches a known easter-egg pattern, or `None` otherwise. Non-matching lines under meme mode also return `None`, allowing the caller to fall through to `calc()`.
+</ResponseField>
+
+---
+
+### `calc_app.variables`
+
+<ResponseField name="variables" type="dict[str, float]">
+  A module-level dictionary shared across all imports within a session. Keys are variable names (single letters or short identifiers) and values are `float`. Set via the `name=value` syntax at the REPL; consumed by `calc()` during variable substitution.
+
+  ```python
+  # variables.py
+  variables = {}
+  ```
+</ResponseField>

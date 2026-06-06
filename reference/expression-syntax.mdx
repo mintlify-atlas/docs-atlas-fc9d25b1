@@ -1,0 +1,202 @@
+---
+title: "Calculator App Expression Syntax: A Complete Reference"
+sidebarTitle: "Expression Syntax"
+description: "Every valid expression type in Calculator App — arithmetic, fractions, natural language, variables, equations, functions, and special commands."
+---
+
+Calculator App accepts a rich variety of expression formats beyond simple arithmetic. From natural language phrases like `9 squared` to algebraic equations like `2x+4=10`, this page documents every form of input the REPL understands, with examples drawn directly from the source.
+
+## Arithmetic Operators
+
+All standard arithmetic operators are supported. Expressions are evaluated using Python's `eval` under a restricted safe dictionary, so standard operator precedence applies.
+
+| Operator | Meaning | Example | Result |
+|----------|----------------|---------|--------|
+| `+` | Addition | `3+2` | `5` |
+| `-` | Subtraction | `10-4` | `6` |
+| `*` | Multiplication | `3*4` | `12` |
+| `/` | Division | `15/3` | `5.0` |
+| `**` | Exponentiation | `2**3` | `8` |
+| `^` | Exponentiation (alias) | `2^3` | `8` |
+
+<Note>
+The `^` operator is automatically rewritten to `**` before evaluation. Both forms produce identical results.
+</Note>
+
+## Fractions
+
+Calculator App parses fraction notation and converts it to Python's `fractions.Fraction` type internally, giving exact rational arithmetic rather than floating-point approximations.
+
+**Simple fractions** use the standard `a/b` notation:
+
+```text
+1/2 + 1/3
+```
+```text
+= 5/6
+```
+
+```text
+3/4 - 1/4
+```
+```text
+= 1/2
+```
+
+**Mixed numbers** are written with a space between the whole part and the fractional part:
+
+```text
+2 1/2 + 1/4
+```
+```text
+= 2 3/4
+```
+
+```text
+1/2 * 2
+```
+```text
+= 1
+```
+
+<Tip>
+When the result of a fraction calculation has a denominator of `1`, Calculator App returns a plain integer. When it is improper (numerator greater than denominator), it is displayed as a mixed number.
+</Tip>
+
+## Natural Language
+
+Calculator App understands a set of English phrases and rewrites them into standard expressions before evaluation. The transformation is case-insensitive.
+
+| Natural language phrase | Rewrites to | Example input | Result |
+|------------------------|-------------|---------------|--------|
+| `{n} squared` | `({n})**2` | `9 squared` | `81` |
+| `{n} cubed` | `({n})**3` | `5 cubed` | `125` |
+| `sqrt of {n}` | `sqrt({n})` | `sqrt of 16` | `4.0` |
+| `square root of {n}` | `sqrt({n})` | `square root of 25` | `5.0` |
+| `sqrt {n}` | `sqrt({n})` | `sqrt 16` | `4.0` |
+
+<Note>
+Natural language phrases only match literal numbers in the expression (e.g., `9 squared`). To square a variable or sub-expression, use `**` or `^` directly.
+</Note>
+
+## Variables
+
+Variables let you store a numeric value under a name and reuse it across expressions within the same REPL session.
+
+**Assigning a variable** uses `name=value` with no spaces around the `=`, and no operators in the left-hand side:
+
+```text
+x=5
+```
+```text
+Set x = 5
+```
+
+**Using a variable** — type the variable name anywhere in a subsequent expression:
+
+```text
+x+3
+```
+```text
+= 8.0
+```
+
+```text
+2*x
+```
+```text
+= 10.0
+```
+
+<Warning>
+Variable names are substituted as raw string replacements before evaluation. Avoid names that conflict with built-in function names such as `sin`, `cos`, `pi`, or `e`.
+</Warning>
+
+## Equations
+
+When the input contains `=` and at least one letter on the left-hand side, Calculator App routes the input to its equation solver rather than the standard evaluator.
+
+**Format:** `expression = value` where the expression includes a single-letter variable.
+
+```text
+2x+4=10
+```
+```text
+x = 3
+```
+
+```text
+6+x=7
+```
+```text
+x = 1
+```
+
+```text
+x^2-4=0
+```
+```text
+x = -2 or x = 2
+```
+
+<Info>
+**Implicit multiplication** — writing a digit immediately before a letter (e.g., `2x`) is automatically expanded to `2*x` by the solver before evaluation. You do not need to write the `*` explicitly in equation expressions.
+</Info>
+
+The solver first attempts an algebraic approach for linear equations and, if that fails, performs a brute-force integer search over the range **−100,000 to 100,000**.
+
+## Math Functions
+
+The following functions and constants are available in any expression. They live in the evaluator's safe dictionary and map directly to Python's `math` module.
+
+| Name | Description | Example | Result |
+|------|-------------|---------|--------|
+| `sqrt(x)` | Square root | `sqrt(25)` | `5.0` |
+| `sin(x)` | Sine (radians) | `sin(0)` | `0.0` |
+| `cos(x)` | Cosine (radians) | `cos(0)` | `1.0` |
+| `tan(x)` | Tangent (radians) | `tan(0)` | `0.0` |
+| `log(x)` | Natural logarithm | `log(e)` | `1.0` |
+| `pi` | π constant | `pi` | `3.14159…` |
+| `e` | Euler's number | `e` | `2.71828…` |
+
+Functions can be composed with arithmetic operators:
+
+```text
+sin(pi/2)
+```
+```text
+= 1.0
+```
+
+```text
+sqrt(9) + cos(0)
+```
+```text
+= 4.0
+```
+
+## Special Commands
+
+Two special keywords are handled by the REPL before any expression parsing occurs.
+
+<CardGroup cols={2}>
+  <Card title="quit" icon="door-open">
+    Exits the Calculator App REPL immediately. No expression is evaluated.
+
+    ```text
+    > quit
+    ```
+  </Card>
+  <Card title="meme" icon="face-laugh">
+    Toggles meme mode on or off. When meme mode is **ON**, certain iconic expressions return joke results instead of their real values (e.g., `9+10` returns `21`).
+
+    ```text
+    > meme
+    Meme mode: ON 😂
+    ```
+  </Card>
+</CardGroup>
+
+<Tip>
+Meme mode is off by default and toggles each time you type `meme`. Type it again to restore normal calculation behaviour.
+</Tip>

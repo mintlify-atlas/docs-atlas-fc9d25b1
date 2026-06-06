@@ -1,20 +1,79 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "Calculator App: Terminal Calculator with Natural Language & Fractions"
+sidebarTitle: "Home"
+description: "Calculator App is a Python terminal calculator supporting natural language, exact fraction arithmetic, equation solving, variables, and meme mode."
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+Calculator App is a feature-rich terminal calculator written in Python. Install it once and run `calc-app` from any terminal to evaluate expressions, solve equations, work with fractions, and even toggle meme mode for a few internet-famous surprises.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Install Calculator App via pip and run your first calculation in under a minute.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    See every major feature in action with a guided walkthrough of the REPL.
+  </Card>
+  <Card title="Features" icon="star" href="/features/basic-math">
+    Explore natural language, fractions, equation solving, variables, and more.
+  </Card>
+  <Card title="Reference" icon="book" href="/reference/expression-syntax">
+    Full syntax reference, supported functions, and error message guide.
+  </Card>
+</CardGroup>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+## What Calculator App Can Do
+
+<CardGroup cols={3}>
+  <Card title="Natural Language" icon="comment" href="/features/natural-language">
+    Type `9 squared` or `sqrt of 16` instead of formal notation.
+  </Card>
+  <Card title="Exact Fractions" icon="divide" href="/features/fractions">
+    Compute `1/2 + 1/3` or `2 1/2 + 3/4` with exact rational arithmetic.
+  </Card>
+  <Card title="Equation Solver" icon="equals" href="/features/equation-solver">
+    Solve linear and polynomial equations like `2x+4=10` automatically.
+  </Card>
+  <Card title="Variables" icon="x" href="/features/variables">
+    Assign `x=5`, then use `x` in any expression across the session.
+  </Card>
+  <Card title="Math Functions" icon="function" href="/features/math-functions">
+    Built-in `sqrt`, `sin`, `cos`, `tan`, `log`, `pi`, and `e`.
+  </Card>
+  <Card title="Meme Mode" icon="face-laugh" href="/features/meme-mode">
+    Toggle meme mode for easter-egg responses on famous internet maths.
+  </Card>
+</CardGroup>
+
+## Get Running in Seconds
+
+<Steps>
+  <Step title="Install the package">
+    ```bash
+    pip install calculator-app
+    ```
+  </Step>
+  <Step title="Launch the REPL">
+    ```bash
+    calc-app
+    ```
+  </Step>
+  <Step title="Enter your first expression">
+    ```
+    > 2 1/2 + 3/4
+    = 3 1/4
+
+    > 2x + 4 = 10
+    x = 3
+
+    > 9 squared
+    = 81
+    ```
+  </Step>
+  <Step title="Quit when done">
+    Type `quit` or press <kbd>Ctrl</kbd>+<kbd>C</kbd> to exit.
+  </Step>
+</Steps>
+
+<Note>
+  Calculator App requires Python 3.10 or later. See the [Installation guide](/installation) for full setup instructions and development installation steps.
+</Note>

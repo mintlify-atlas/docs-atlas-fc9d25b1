@@ -1,0 +1,94 @@
+---
+title: "Basic Arithmetic and Operator Support in Calculator App"
+sidebarTitle: "Basic Math"
+description: "Perform addition, subtraction, multiplication, division, and exponentiation with standard operator precedence and integer or float results."
+---
+
+Calculator App supports all fundamental arithmetic operations directly from the terminal prompt. Expressions are evaluated using Python's `eval` with a restricted namespace, so operator precedence follows standard Python rules — parentheses first, then exponentiation, then multiplication and division, then addition and subtraction.
+
+## Supported Operators
+
+| Operator | Symbol(s) | Example | Result |
+|----------|-----------|---------|--------|
+| Addition | `+` | `2+3` | `5` |
+| Subtraction | `-` | `10-4` | `6` |
+| Multiplication | `*` | `3*4` | `12` |
+| Division | `/` | `15/3` | `5` |
+| Exponentiation | `^` or `**` | `2^3` or `2**3` | `8` |
+
+## Exponentiation: `^` and `**`
+
+Both caret (`^`) and double-asterisk (`**`) are accepted as exponentiation operators. Before evaluation, `evaluator.py` uses a regex substitution to convert any `^` into `**` so Python's `eval` can process it:
+
+```python
+expr = re.sub(r'(\d+(?:\.\d+)?|\w+)\^(\d+(?:\.\d+)?|\w+)', r'\1**\2', expr)
+```
+
+This means `2^3` and `2**3` produce identical results.
+
+```text
+> 2^3
+= 8
+> 2**3
+= 8
+> 9**2
+= 81
+```
+
+## Operator Precedence
+
+Calculator App uses standard Python operator precedence. No configuration is needed — expressions are evaluated exactly as a Python interpreter would evaluate them.
+
+<Accordion title="Precedence order (highest to lowest)">
+1. **Parentheses** — `(2+3)*4` → `20`
+2. **Exponentiation** — `2**3+1` → `9`
+3. **Multiplication / Division** — `3*4+2` → `14`
+4. **Addition / Subtraction** — `10-4+2` → `8`
+</Accordion>
+
+```text
+> (2+3)*4
+= 20
+> 2**3+1
+= 9
+> 3*4+2
+= 14
+```
+
+## Integer vs Float Results
+
+The type of result returned depends on the operands and the operation:
+
+- **Integer result** — when both operands are integers and the operation produces a whole number (e.g., `2+3` → `5`, `3*4` → `12`).
+- **Float result** — when division is involved or the result is non-integer (e.g., `15/3` → `5.0` in Python 3, `7/2` → `3.5`).
+
+```text
+> 2+3
+= 5
+> 10-4
+= 6
+> 3*4
+= 12
+> 15/3
+= 5.0
+> 7/2
+= 3.5
+```
+
+## Error Handling
+
+<CardGroup cols={2}>
+  <Card title="Division by Zero" icon="circle-exclamation">
+    Returns `Invalid - Division by zero` when a denominator evaluates to `0`.
+  </Card>
+  <Card title="Syntax Error" icon="triangle-exclamation">
+    Returns `Invalid - Syntax error` for malformed expressions like `2++3`.
+  </Card>
+</CardGroup>
+
+```text
+> 5/0
+= Invalid - Division by zero
+> 2++3
+= Invalid - Syntax error
+```

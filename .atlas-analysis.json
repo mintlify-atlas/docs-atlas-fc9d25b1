@@ -1,0 +1,64 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Calculator App",
+  "projectDescription": "A terminal-based Python calculator with natural language input, fraction arithmetic, equation solving, variable support, and meme mode.",
+  "theme": "palm",
+  "primaryColor": "#3498db",
+  "lightColor": "#667eea",
+  "darkColor": "#2c3e50",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "installation", "quickstart"]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/basic-math",
+              "features/fractions",
+              "features/natural-language",
+              "features/variables",
+              "features/equation-solver",
+              "features/math-functions",
+              "features/meme-mode"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": ["reference/expression-syntax", "reference/supported-functions", "reference/error-messages"]
+          },
+          {
+            "group": "Development",
+            "pages": ["development/architecture", "development/testing", "development/contributing"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Natural language expressions (e.g., '9 squared', 'sqrt of 16', '5 cubed')",
+    "Exact fraction arithmetic with mixed-number support (e.g., '2 1/2 + 3/4')",
+    "Linear equation solver (e.g., '2x+4=10')",
+    "Brute-force polynomial/quadratic/cubic solver for integer roots",
+    "User-defined variables (e.g., 'x=5', then 'x+3')",
+    "Math functions: sqrt, sin, cos, tan, log, pi, e",
+    "Exponentiation via both ^ and ** syntax",
+    "Meme mode with easter-egg responses for famous internet maths",
+    "Web demo via index.html (JavaScript mirror of Python logic)",
+    "Installable as a PyPI package with 'calc-app' console script entry point"
+  ],
+  "publicApiSurface": [
+    "calc-app  (CLI entry point)",
+    "calc_app.core.main()  — REPL loop",
+    "calc_app.evaluator.calc(expr: str)  — evaluate an expression string",
+    "calc_app.solver.solve_equation(equation: str)  — solve an equation string",
+    "calc_app.parser.parse_natural_language(expr: str)  — translate natural language to math",
+    "calc_app.fractions.parse_fractions(expr: str)  — rewrite fraction literals to Fraction() calls",
+    "calc_app.meme.handle_meme(line: str, meme_mode: bool)  — return meme response or None",
+    "calc_app.variables.variables  — dict of user-defined variable bindings"
+  ]
+}

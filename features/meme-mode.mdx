@@ -1,0 +1,114 @@
+---
+title: "Meme Mode: Easter Eggs and Jokes for the Chaotic Calculator"
+sidebarTitle: "Meme Mode"
+description: "Toggle meme mode to unlock calculator easter eggs — from '9+10 = 21' to the legendary number 67. Warning: math accuracy not guaranteed in meme mode."
+---
+
+Sometimes the correct answer just isn't the right answer. Calculator App ships with a secret weapon: **Meme Mode** — a togglable Easter egg layer that intercepts certain expressions and replaces the boring, accurate result with something much more important.
+
+## Toggling Meme Mode
+
+Type `meme` at the prompt to switch meme mode on or off. The calculator confirms the new state:
+
+```text
+> meme
+Meme mode: ON 😂
+
+> meme
+Meme mode: OFF
+```
+
+When meme mode is `ON`, special expressions are caught by `handle_meme()` in `meme.py` before they reach the evaluator. When `OFF`, every expression — including the easter-egg ones — is evaluated normally and returns a correct result.
+
+## Easter Eggs
+
+<CardGroup cols={2}>
+  <Card title="9+10" icon="face-laugh-squint">
+    The classic. `9+10` returns `= 21 😂` instead of the mathematically defensible `19`.
+  </Card>
+  <Card title="2+2" icon="brain">
+    `2+2` returns `= 5 (quick maths)`. Big Brother approved.
+  </Card>
+  <Card title="1+1" icon="lightbulb">
+    `1+1` returns `= 11 (big brain)`. Concatenation, obviously.
+  </Card>
+  <Card title="67" icon="fire">
+    Entering exactly `67` returns `= THE MEME NUMBER 67! 🔥`. No explanation needed.
+  </Card>
+  <Card title="41" icon="face-thinking">
+    Entering exactly `41` returns `= 41! The answer to everything (almost) 🤔`. Close enough.
+  </Card>
+  <Card title="Expression containing 67" icon="fire">
+    Any expression that *contains* `67` is evaluated normally, then the result is annotated: `= {result} (contains the legendary 67! 🔥)`.
+  </Card>
+  <Card title="Expression containing 41" icon="face-thinking">
+    Any expression that *contains* `41` is evaluated normally, then annotated: `= {result} (contains 41! 🤔)`.
+  </Card>
+</CardGroup>
+
+## Full Demo
+
+```text
+> meme
+Meme mode: ON 😂
+
+> 9+10
+= 21 😂
+
+> 2+2
+= 5 (quick maths)
+
+> 1+1
+= 11 (big brain)
+
+> 67
+= THE MEME NUMBER 67! 🔥
+
+> 41
+= 41! The answer to everything (almost) 🤔
+
+> 67+1
+= 68 (contains the legendary 67! 🔥)
+
+> 41*2
+= 82 (contains 41! 🤔)
+
+> meme
+Meme mode: OFF
+
+> 9+10
+= 19
+```
+
+## How It Works
+
+`handle_meme()` in `meme.py` is called on every input line when `meme_mode` is `True`. Exact string matches are checked first; then substring checks handle expressions that merely *contain* `67` or `41`:
+
+```python
+def handle_meme(line: str, meme_mode: bool):
+    if not meme_mode:
+        return None
+
+    stripped = line.strip()
+
+    if stripped == '9+10':   return "= 21 😂"
+    if stripped == '2+2':    return "= 5 (quick maths)"
+    if stripped == '1+1':    return "= 11 (big brain)"
+    if stripped == '67':     return "= THE MEME NUMBER 67! 🔥"
+    if stripped == '41':     return "= 41! The answer to everything (almost) 🤔"
+
+    if '67' in stripped:
+        result = calc(line)
+        return f"= {result} (contains the legendary 67! 🔥)"
+    if '41' in stripped:
+        result = calc(line)
+        return f"= {result} (contains 41! 🤔)"
+
+    return None
+```
+
+When `handle_meme()` returns `None`, the input falls through to normal evaluation — so all non-Easter-egg expressions still compute correctly even in meme mode.
+
+<Note>
+  When meme mode is **OFF**, every expression — including `9+10`, `2+2`, and `67` — is evaluated normally by the standard calculator pipeline. Meme mode has zero effect on regular math.
+</Note>

@@ -1,10 +1,10 @@
 ---
-title: "Equation Solver for Linear and Polynomial Expressions"
+title: "Single-Variable Equation Solver with Brute-Force Search"
 sidebarTitle: "Equation Solver"
-description: "Solve for an unknown variable in linear and polynomial equations using algebraic reduction or brute-force integer search from -100,000 to 100,000."
+description: "Solve single-variable equations at the prompt using coefficient extraction for linear forms and brute-force integer search from -100,000 to 100,000."
 ---
 
-Calculator App can solve single-variable equations entered directly at the prompt. The `solve_equation()` function in `solver.py` tries an algebraic method first, then falls back to a brute-force integer search — covering a wide range of common equations without any special syntax.
+Calculator App can solve single-variable equations entered directly at the terminal prompt. The `solve_equation()` function in `solver.py` tries a fast algebraic method for equations of the form `a*x + b = c`, then falls back to a brute-force integer search over the range -100,000 to 100,000 for everything else. Only integer solutions are returned by brute-force — non-integer roots and solutions outside that range will not be found.
 
 ## How Equations Are Detected
 
@@ -33,7 +33,7 @@ This means you can write equations the way they appear in textbooks.
 
 <Tabs>
   <Tab title="Algebraic (linear)">
-    For linear equations (no `**2` term present), the solver uses eval-based coefficient extraction:
+    For expressions of the form `a*x + b = c` (no `**2` term **and** a `*` operator present on the left side), the solver uses eval-based coefficient extraction:
 
     1. Substitute `var = 0` into the left side to find the constant term `b`.
     2. Substitute `var = 1` to find `a + b`; subtract `b` to get the coefficient `a`.
@@ -48,10 +48,10 @@ This means you can write equations the way they appear in textbooks.
     solution = (c - b) / a
     ```
 
-    This is fast and returns exact results (or a fraction) for any `ax + b = c` form.
+    This path is taken only when the left side contains a `*` operator but no `**2`. Equations like `x+4=10` (no explicit `*`) fall through to the brute-force search instead.
   </Tab>
-  <Tab title="Brute-force (polynomial)">
-    When the algebraic path is skipped (e.g., a `**2` term is detected), the solver iterates over every integer from **-100,000 to 100,000**, substituting the candidate value and checking whether both sides of the equation differ by less than `0.0001`:
+  <Tab title="Brute-force (integer search)">
+    All other equations — including those with `**2`, and simple forms like `x+4=10` — use brute-force: the solver iterates over every integer from **-100,000 to 100,000**, substituting the candidate value and checking whether both sides of the equation differ by less than `0.0001`:
 
     ```python
     for test_val in range(-100000, 100001):

@@ -81,35 +81,19 @@ Natural language phrases only match literal numbers in the expression (e.g., `9 
 
 ## Variables
 
-Variables let you store a numeric value under a name and reuse it across expressions within the same REPL session.
+The evaluator maintains a variable store that is injected into every expression before evaluation. Variable values are substituted as raw string replacements, so a stored value of `5` turns every occurrence of the variable name into the literal string `5` before `eval` runs.
 
-**Assigning a variable** uses `name=value` with no spaces around the `=`, and no operators in the left-hand side:
+**Assigning a variable** uses `name=value` syntax. Because any input containing both `=` and a letter is first routed to the equation solver (see [Equations](#equations) below), typing `x=5` is handled as a one-variable equation and the solver returns the solution directly:
 
 ```text
 x=5
 ```
 ```text
-Set x = 5
-```
-
-**Using a variable** — type the variable name anywhere in a subsequent expression:
-
-```text
-x+3
-```
-```text
-= 8.0
-```
-
-```text
-2*x
-```
-```text
-= 10.0
+x = 5
 ```
 
 <Warning>
-Variable names are substituted as raw string replacements before evaluation. Avoid names that conflict with built-in function names such as `sin`, `cos`, `pi`, or `e`.
+Due to the order of routing checks in the REPL, inputs of the form `name=value` where the name contains a letter are always processed as equations, not stored as variables. The variable store can be populated programmatically but is not writable from the REPL prompt using letter-named variables.
 </Warning>
 
 ## Equations
@@ -136,14 +120,18 @@ x = 1
 x^2-4=0
 ```
 ```text
-x = -2 or x = 2
+x = -2
 ```
 
 <Info>
 **Implicit multiplication** — writing a digit immediately before a letter (e.g., `2x`) is automatically expanded to `2*x` by the solver before evaluation. You do not need to write the `*` explicitly in equation expressions.
 </Info>
 
-The solver first attempts an algebraic approach for linear equations and, if that fails, performs a brute-force integer search over the range **−100,000 to 100,000**.
+The solver first attempts an algebraic approach when the left-hand side contains explicit multiplication (the `*` operator) but no exponentiation (`**2`), and falls back to a brute-force integer search over the range **−100,000 to 100,000**. The search returns the **first** integer solution found; if an equation has multiple solutions only one result is reported.
+
+<Note>
+The solver finds only the first matching integer in the search range. For `x^2-4=0` the brute-force scan encounters `x = -2` before `x = 2` and returns that single result.
+</Note>
 
 ## Math Functions
 

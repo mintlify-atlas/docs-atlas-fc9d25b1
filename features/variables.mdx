@@ -20,20 +20,32 @@ Set total = 100
 
 ### How Assignment Is Detected
 
-In `core.py`, the input is checked before evaluation:
+In `core.py`, the input routing checks are ordered as follows:
 
 ```python
+# 1. Equation solver runs FIRST — any line with '=' and a letter is routed here
+if '=' in line and re.search(r'[a-zA-Z]', line):
+    result = solve_equation(line)
+    print(result)
+    continue
+
+# 2. Numeric-only assignment — only reached if no letter is present in the line
 if '=' in line and not any(op in line.split('=')[0] for op in ['+', '-', '*', '/']):
     name, value = line.split('=', 1)
     variables[name.strip()] = float(value.strip())
     print(f"Set {name.strip()} = {value.strip()}")
+    continue
 ```
 
-If the left side of `=` contains an operator, the expression is passed to the equation solver instead (see [Equation Solver](/features/equation-solver)).
+Because the equation solver check runs first and matches any line containing `=` **and** a letter, a letter-named assignment like `x=5` is handled by `solve_equation()` rather than the variable assignment block. The variable assignment block is only reached for inputs where the left side contains no alphabetic characters at all (e.g., a purely numeric left side).
+
+<Note>
+  The equation solver intercepts `x=5` and similar letter-named assignments before the variable assignment block can run. Variables are most reliably used by setting them through expressions that the solver processes, or by relying on the substitution that `evaluator.py` applies using whatever is already in the `variables` dict.
+</Note>
 
 ## Using Variables in Expressions
 
-Once set, a variable name is substituted as a plain string into the expression before it reaches `eval`. This happens inside `evaluator.py`:
+Once a variable is stored in the `variables` dict, its name is substituted as a plain string into the expression before it reaches `eval`. This happens inside `evaluator.py`:
 
 ```python
 for name, value in variables.items():

@@ -1,7 +1,7 @@
 ---
 title: "Module Architecture and Internal Design of Calculator App"
 sidebarTitle: "Architecture"
-description: "A technical deep-dive into Calculator App's module layout, evaluation pipeline, REPL dispatch loop, and each module's public API."
+description: "A technical deep-dive into Calculator App's module layout, evaluation pipeline, REPL dispatch loop, and each module's public API surface."
 ---
 
 Calculator App is structured as a small, focused Python package (`calc_app`) with each concern isolated in its own module. There are no third-party dependencies — the entire implementation relies on the Python standard library, with `fractions.Fraction`, `math`, and `re` doing the heavy lifting.
@@ -12,8 +12,7 @@ The package lives entirely inside the `calc_app/` directory. Each file owns a si
 
 ```text
 calc_app/
-├── __init__.py      # re-exports: main, calc, solve_equation,
-│                    #             parse_natural_language, parse_fractions
+├── __init__.py      # re-exports: main (from core)
 ├── app.py           # entry point — imports main from core, runs it as __main__
 ├── core.py          # REPL loop and top-level command dispatch
 ├── evaluator.py     # calc(expr) — full expression evaluation pipeline
@@ -24,16 +23,19 @@ calc_app/
 └── variables.py     # variables dict — shared session state
 ```
 
-The public surface exposed by `__init__.py` is intentionally small:
+The public surface exposed by `__init__.py` is intentionally minimal — it re-exports only `main`:
 
 ```python
 from .core import main
 ```
 
-`core.py` in turn imports `calc`, `solve_equation`, `handle_meme`, and `variables` from their respective sibling modules. This means importers of `calc_app` get `main`, while `calc_tests.py` reaches individual functions directly:
+`core.py` in turn imports `calc`, `solve_equation`, `handle_meme`, and `variables` from their respective sibling modules. Code that needs individual functions (such as `calc_tests.py`) imports them directly from their submodules, not from the top-level package:
 
 ```python
-from calc_app import calc, solve_equation, parse_natural_language, parse_fractions
+from calc_app.evaluator import calc
+from calc_app.solver import solve_equation
+from calc_app.parser import parse_natural_language
+from calc_app.fractions import parse_fractions
 ```
 
 ---

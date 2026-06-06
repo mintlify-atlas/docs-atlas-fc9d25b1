@@ -1,7 +1,7 @@
 ---
-title: "Running the Test Suite for Calculator App"
+title: "Running and Extending the Calculator App Test Suite"
 sidebarTitle: "Testing"
-description: "How to run Calculator App's test suite, what each test category covers, and how to extend tests with new cases."
+description: "How to run Calculator App's self-contained test script, what each of the five test categories covers, and how to add new test cases."
 ---
 
 Calculator App ships with a self-contained test script, `calc_tests.py`, that exercises every major feature of the calculator — from basic arithmetic and fraction handling to natural-language parsing and equation solving. Tests are plain Python functions with no external test framework required.
@@ -43,7 +43,7 @@ A fully passing run produces output like the following:
 === Equation Tests ===
 ✓ 2x+4=10 → x = 3 (expected x = 3)
 ✓ 6+x=7 → x = 1 (expected x = 1)
-✓ x^2-4=0 → x = -2 or x = 2 (expected x = -2 or x = 2)
+✓ x^2-4=0 → x = 2 (expected x = 2)
 ✓ 5x+101010=10 → x = -20200 (expected x = -20200)
 
 === Function Tests ===
@@ -109,17 +109,17 @@ These tests confirm that the NL parser correctly rewrites the phrase before the 
 
 ### 4. `test_equations()` — 4 cases
 
-Exercises `solve_equation()` across linear equations, a simple quadratic, and a large-coefficient linear equation to stress-test the brute-force integer search range (−100,000 to 100,000).
+Exercises `solve_equation()` across linear equations, a squared-variable equation, and a large-coefficient linear equation to stress-test the brute-force integer search range (−100,000 to 100,000).
 
 | Equation | Expected |
 |---|---|
 | `2x+4=10` | `"x = 3"` |
 | `6+x=7` | `"x = 1"` |
-| `x^2-4=0` | `"x = -2 or x = 2"` |
+| `x^2-4=0` | `"x = 2"` |
 | `5x+101010=10` | `"x = -20200"` |
 
 <Warning>
-  The equation solver uses integer brute-force search for quadratic-style expressions and algebraic coefficient extraction for linear ones. Equations with non-integer or very large solutions outside the search range may return `"Could not solve equation"`.
+  The equation solver uses algebraic coefficient extraction only for linear equations (those without a squared term). Equations containing `**2` (including `x^2` after caret conversion) fall through to an integer brute-force search over the range −100,000 to 100,000, which returns the **first** matching integer. For `x^2-4=0`, the substitution of negative values is affected by Python operator precedence (e.g. `-2**2` evaluates to `-4`, not `4`), so the solver finds only `x = 2`. Equations with non-integer or out-of-range solutions will return `"Could not solve equation"`.
 </Warning>
 
 ---

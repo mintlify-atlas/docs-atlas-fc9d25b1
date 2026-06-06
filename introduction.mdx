@@ -1,7 +1,7 @@
 ---
 title: "Calculator App: A Feature-Rich Terminal Calculator"
 sidebarTitle: "Introduction"
-description: "Calculator App is a Python CLI calculator with natural language input, fraction arithmetic, equation solving, variables, math functions, and meme mode — all from your terminal."
+description: "Python CLI calculator with natural language input, fraction arithmetic, equation solving, math functions, and meme mode — all from your terminal."
 ---
 
 Calculator App is a Python-powered terminal calculator that goes far beyond basic arithmetic. Installed as a single pip package and launched with the `calc-app` command, it gives you an interactive REPL where you can crunch numbers using plain English, work with fractions, solve linear equations, store named variables, call math functions, and even toggle a meme mode for comic relief — all without leaving your terminal.
@@ -39,6 +39,9 @@ Calculator App ships with a broad set of capabilities out of the box:
   <Card title="Math Functions" icon="function" href="/features/math-functions">
     Built-in access to `sqrt`, `sin`, `cos`, `tan`, `log`, `pi`, and `e`.
   </Card>
+  <Card title="Meme Mode" icon="face-laugh" href="/features/meme-mode">
+    Toggle meme mode with `meme` for humorous takes on your calculations.
+  </Card>
 </CardGroup>
 
 ## How It Works
@@ -47,10 +50,9 @@ Calculator App runs as a **REPL** (Read-Eval-Print Loop). Each time you press En
 
 1. **Natural language parser** (`parser.py`) — rewrites English phrases into Python-compatible expressions (e.g. `9 squared` → `(9)**2`).
 2. **Fraction parser** (`fractions.py`) — converts fraction literals and mixed numbers into `Fraction(...)` constructor calls so arithmetic stays exact.
-3. **Variable substitution** (`variables.py`) — replaces any stored variable names with their current numeric values.
-4. **Evaluator** (`evaluator.py`) — calls Python's `eval` against a tightly controlled safe namespace that exposes only the math functions listed above, preventing arbitrary code execution.
-5. **Equation solver** (`solver.py`) — when the input contains both `=` and a letter, the solver isolates the unknown and returns its value.
-6. **Meme handler** (`meme.py`) — when meme mode is active, a small set of well-known inputs are intercepted and returned with comedic results before the evaluator runs.
+3. **Evaluator** (`evaluator.py`) — substitutes any stored variable names with their current values, then calls Python's `eval` against a tightly controlled safe namespace that exposes only the math functions listed above, preventing arbitrary code execution.
+4. **Equation solver** (`solver.py`) — when the input contains both `=` and a letter, the solver isolates the unknown and returns its value instead of routing through the evaluator.
+5. **Meme handler** (`meme.py`) — when meme mode is active, a small set of well-known inputs are intercepted and returned with comedic results before the evaluator runs.
 
 The loop continues until you type `quit` or press `Ctrl+C`.
 
